@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_friedman1
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+try:
+    from skrvm import RVR
+    print("skrvm imported successfully.")
+except ImportError:
+    print("Error: skrvm library not found. Please ensure the installation cell was run successfully.")
+    # You might want to exit or handle this case differently if the library is essential
+    raise # Re-raise the error if you want the execution to stop
+
+# Generate sample data
+X, y = make_friedman1(n_samples=200, n_features=5, noise=0.1, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Create and train RVM regressor
+rvr = RVR(kernel='rbf')
+rvr.fit(X_train, y_train)
+
+# Make predictions
+y_pred = rvr.predict(X_test)
+
+# Calculate error
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error: {mse:.4f}")
+print(f"Number of Relevance Vectors: {rvr.relevance_.shape[0]}")
+
+# Plot results
+plt.figure(figsize=(10, 6))
+plt.errorbar(range(len(y_test)), y_pred, fmt='o', alpha=0.7, label='Predictions')
+plt.plot(y_test, 'r-', label='True values')
+plt.xlabel('Sample index')
+plt.ylabel('Target value')
+plt.title('RVM Regression with Uncertainty Estimates')
+plt.legend()
+plt.grid(True)
+plt.show()
